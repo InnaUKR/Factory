@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 class Factory
   def self.new(*arguments, &block)
     if arguments.first.is_a?(String)
@@ -38,22 +37,22 @@ class Factory
 
       def [](iv)
         if iv.is_a?(Integer)
-        	raise IndexError if members.length-1 < iv || members.length < iv.abs
+          raise IndexError if members.length - 1 < iv || members.length < iv.abs
           instance_variable_get("@#{members[iv]}")
         elsif iv.is_a?(Float)
           instance_variable_get("@#{members[iv.to_i]}")
         else
-        	raise NameError unless members.include?(iv.to_sym)
+          raise NameError unless members.include?(iv.to_sym)
           instance_variable_get("@#{iv}")
         end
       end
 
       def []=(iv, value)
         if iv.is_a?(Integer)
-        	raise IndexError if members.length-1 < iv || members.length < iv.abs
-          instance_variable_set("@#{members[iv]}", value)        	
+          raise IndexError if members.length - 1 < iv || members.length < iv.abs
+          instance_variable_set("@#{members[iv]}", value)
         else
-        	raise NameError unless members.include?(iv.to_sym)
+          raise NameError unless members.include?(iv.to_sym)
           instance_variable_set("@#{iv}", value)
         end
       end
@@ -108,17 +107,17 @@ class Factory
       end
 
       alias_method :inspect, :to_s
-      
+
       def values_at(*selector)
-      	if selector.length == 1
-      		return to_a.values_at(*selector) if selector.first.is_a? Range
-      		raise TypeError unless selector.first.is_a? Numeric
-      		raise IndexError if members.length-1 < selector.first || members.length < selector.first.abs
-      		to_a.values_at(*selector.to_i)
-      	else selector.length > 1
-      		selector.each{|value| raise TypeError unless value.is_a? Numeric }
-      		to_a.values_at(*selector)
-      	end
+        if selector.length == 1
+          return to_a.values_at(*selector) if selector.first.is_a? Range
+          raise TypeError unless selector.first.is_a? Numeric
+          raise IndexError if members.length - 1 < selector.first || members.length < selector.first.abs
+          to_a.values_at(*selector.to_i)
+        else
+          selector.each { |value| raise TypeError unless value.is_a? Numeric }
+          to_a.values_at(*selector)
+        end
       end
     end
 
