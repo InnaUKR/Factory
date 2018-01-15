@@ -2,44 +2,30 @@
 
 class Factory
   def self.new(*arguments, &block)
-    if arguments.first.is_a?(String)
-      raise NameError unless arguments.first.match?(/^[A-Z]/)
-      class_name = arguments.first
-      members_names = arguments[1..-1]
-    else
-      members_names = arguments
-    end
-
+    class_name = arguments.shift if arguments.first.is_a?(String)
     class_implementetion = Class.new do
-      attr_accessor *members_names
+      attr_accessor *arguments
 
       class_eval(&block) if block_given?
 
       define_method :members do
-        members_names.each(&:to_sym)
+        arguments.each(&:to_sym)
       end
 
       def initialize(*members_values)
         raise ArgumentError if members_values.length > members.length
         members.zip(members_values).each do |name, value|
-          instance_variable_set("@#{name}", value)
+          send("#{name}=", value)
         end
       end
 
       def ==(other)
-        members.each do |iv|
-          if instance_variable_get("@#{iv}") == other.instance_variable_get("@#{iv}")
-          else
-            return false
-          end
-        end
+        to_s == other.to_s
       end
 
       def [](iv)
-        if iv.is_a?(Integer)
+        if iv.is_a?(Integer) || iv.is_a?(Float)
           raise IndexError if members.length - 1 < iv || members.length < iv.abs
-          instance_variable_get("@#{members[iv]}")
-        elsif iv.is_a?(Float)
           instance_variable_get("@#{members[iv.to_i]}")
         else
           raise NameError unless members.include?(iv.to_sym)
@@ -90,20 +76,17 @@ class Factory
       alias_method :values, :to_a
 
       def to_h
-        hash = {}
-        array_iv_values = to_a
-        members.each_with_index do |iv, index|
-          hash[iv] = array_iv_values[index]
+        members.each_with_object({}) do |name, hash|
+          hash[name] = self[name]
         end
-        hash
       end
 
       def to_s
-        result = ''
+        result = [self.class]
         members.each do |iv|
-          result << "#{iv}=" + instance_variable_get("@#{iv}").to_s + ', '
+          result << "#{iv}=" + instance_variable_get("@#{iv}").to_s
         end
-        "#<factory #{self.class} #{result[0...-2]}>"
+        result
       end
 
       alias_method :inspect, :to_s
